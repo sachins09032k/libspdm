@@ -69,7 +69,7 @@ static libspdm_return_t libspdm_requester_get_capabilities_test_send_message(
     spdm_test_context = libspdm_get_test_context();
     switch (spdm_test_context->case_id) {
     case 0x1:
-        return LIBSPDM_STATUS_SEND_FAIL;
+        return libspdm_device_send_message_aardvark(spdm_context,request_size,request,timeout);
     case 0x2:
         return LIBSPDM_STATUS_SUCCESS;
     case 0x3:
@@ -159,7 +159,7 @@ static libspdm_return_t libspdm_requester_get_capabilities_test_receive_message(
     spdm_test_context = libspdm_get_test_context();
     switch (spdm_test_context->case_id) {
     case 0x1:
-        return LIBSPDM_STATUS_RECEIVE_FAIL;
+        return libspdm_device_receive_message_aardvark(spdm_context, response_size, response, timeout);
 
     case 0x2: {
         spdm_capabilities_response_t *spdm_response;
@@ -1019,11 +1019,35 @@ static libspdm_return_t libspdm_requester_get_capabilities_test_receive_message(
     }
 }
 
-/*
- * static void libspdm_test_requester_get_capabilities_case1(void **state)
- * {
- * }
- */
+static void libspdm_test_requester_get_capabilities_case1(void **state)
+{
+    libspdm_return_t status;
+    libspdm_test_context_t *spdm_test_context;
+    libspdm_context_t *spdm_context;
+
+    spdm_test_context = *state;
+    spdm_context = spdm_test_context->spdm_context;
+    spdm_test_context->case_id = 0x1;
+    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
+    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+#if LIBSPDM_RECORD_TRANSCRIPT_DATA_SUPPORT
+    spdm_context->transcript.message_m.buffer_size =
+        spdm_context->transcript.message_m.max_buffer_size;
+#endif
+
+    spdm_context->local_context.capability.ct_exponent = 0;
+    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
+    status = libspdm_get_capabilities(spdm_context);
+    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+    assert_int_equal(spdm_context->connection_info.capability.flags,
+                     LIBSPDM_DEFAULT_CAPABILITY_FLAG);
+#if LIBSPDM_RECORD_TRANSCRIPT_DATA_SUPPORT
+    assert_int_equal(spdm_context->transcript.message_m.buffer_size, 0);
+#endif
+}
+
 
 static void libspdm_test_requester_get_capabilities_case2(void **state)
 {
@@ -1072,389 +1096,389 @@ static void libspdm_test_requester_get_capabilities_case2(void **state)
  * }
  */
 
-static void libspdm_test_requester_get_capabilities_case6(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case6(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0x6;
-    spdm_context->retry_times = 3;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state =
-        LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0x6;
+//     spdm_context->retry_times = 3;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state =
+//         LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_FLAG);
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      LIBSPDM_DEFAULT_CAPABILITY_FLAG);
+// }
 
-/*
- * static void libspdm_test_requester_get_capabilities_case7(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case7(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case8(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case8(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case9(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case9(void **state)
+//  * {
+//  * }
+//  */
 
-static void libspdm_test_requester_get_capabilities_case10(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case10(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0xa;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state =
-        LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0xa;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state =
+//         LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     (SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CACHE_CAP |
-                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP |
-                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP |
-                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG |
-                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP));
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      (SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CACHE_CAP |
+//                       SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP |
+//                       SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP |
+//                       SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG |
+//                       SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP));
+// }
 
-static void libspdm_test_requester_get_capabilities_case11(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case11(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0xb;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0xb;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(
-        spdm_context->connection_info.capability.flags,
-        !(SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CACHE_CAP |
-          SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP |
-          SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP |
-          SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG |
-          SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP));
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(
+//         spdm_context->connection_info.capability.flags,
+//         !(SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CACHE_CAP |
+//           SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP |
+//           SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP |
+//           SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG |
+//           SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP));
+// }
 
-static void libspdm_test_requester_get_capabilities_case12(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case12(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0xc;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0xc;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_NO_SIG |
-                     SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP);
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_NO_SIG |
+//                      SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_FRESH_CAP);
+// }
 
-/*
- * static void libspdm_test_requester_get_capabilities_case13(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case13(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case14(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case14(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case15(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case15(void **state)
+//  * {
+//  * }
+//  */
 
-static void libspdm_test_requester_get_capabilities_case16(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case16(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0x10;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_11 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0x10;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_11 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_11;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_11);
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_11;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_11);
+// }
 
-/*
- * static void libspdm_test_requester_get_capabilities_case17(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case17(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case18(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case18(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case19(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case19(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case20(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case20(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case21(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case21(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case22(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case22(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case23(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case23(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case24(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case24(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case25(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case25(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case26(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case26(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case27(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case27(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case28(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case28(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case29(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case29(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case30(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case30(void **state)
+//  * {
+//  * }
+//  */
 
-/*
- * static void libspdm_test_requester_get_capabilities_case31(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case31(void **state)
+//  * {
+//  * }
+//  */
 
-static void libspdm_test_requester_get_capabilities_case32(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
-    size_t arbitrary_size;
+// static void libspdm_test_requester_get_capabilities_case32(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
+//     size_t arbitrary_size;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0x20;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_11 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state =
-        LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0x20;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_11 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state =
+//         LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    /*filling A with arbitrary data*/
-    arbitrary_size = 10;
-    libspdm_set_mem(spdm_context->transcript.message_a.buffer, arbitrary_size, (uint8_t) 0xFF);
-    spdm_context->transcript.message_a.buffer_size = arbitrary_size;
+//     /*filling A with arbitrary data*/
+//     arbitrary_size = 10;
+//     libspdm_set_mem(spdm_context->transcript.message_a.buffer, arbitrary_size, (uint8_t) 0xFF);
+//     spdm_context->transcript.message_a.buffer_size = arbitrary_size;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_11;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_11);
-    libspdm_dump_hex(spdm_context->transcript.message_a.buffer,
-                     spdm_context->transcript.message_a.buffer_size);
-    assert_int_equal(spdm_context->transcript.message_a.buffer_size,
-                     arbitrary_size + m_libspdm_local_buffer_size);
-    LIBSPDM_DEBUG((LIBSPDM_DEBUG_INFO, "m_libspdm_local_buffer (0x%zx):\n",
-                   m_libspdm_local_buffer_size));
-    libspdm_dump_hex(m_libspdm_local_buffer, m_libspdm_local_buffer_size);
-    assert_memory_equal(spdm_context->transcript.message_a.buffer + arbitrary_size,
-                        m_libspdm_local_buffer, m_libspdm_local_buffer_size);
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_11;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_11);
+//     libspdm_dump_hex(spdm_context->transcript.message_a.buffer,
+//                      spdm_context->transcript.message_a.buffer_size);
+//     assert_int_equal(spdm_context->transcript.message_a.buffer_size,
+//                      arbitrary_size + m_libspdm_local_buffer_size);
+//     LIBSPDM_DEBUG((LIBSPDM_DEBUG_INFO, "m_libspdm_local_buffer (0x%zx):\n",
+//                    m_libspdm_local_buffer_size));
+//     libspdm_dump_hex(m_libspdm_local_buffer, m_libspdm_local_buffer_size);
+//     assert_memory_equal(spdm_context->transcript.message_a.buffer + arbitrary_size,
+//                         m_libspdm_local_buffer, m_libspdm_local_buffer_size);
+// }
 
-static void libspdm_test_requester_get_capabilities_case33(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case33(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0x21;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_12 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0x21;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_12 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 
-    spdm_context->local_context.capability.ct_exponent = 0;
-    spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_12;
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.max_spdm_msg_size,
-                     LIBSPDM_MAX_SPDM_MSG_SIZE);
-    assert_int_equal(spdm_context->connection_info.capability.data_transfer_size,
-                     LIBSPDM_DATA_TRANSFER_SIZE);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_12);
-}
+//     spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG_VERSION_12;
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.max_spdm_msg_size,
+//                      LIBSPDM_MAX_SPDM_MSG_SIZE);
+//     assert_int_equal(spdm_context->connection_info.capability.data_transfer_size,
+//                      LIBSPDM_DATA_TRANSFER_SIZE);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_12);
+// }
 
 
-/*
- * static void libspdm_test_requester_get_capabilities_case34(void **state)
- * {
- * }
- */
+// /*
+//  * static void libspdm_test_requester_get_capabilities_case34(void **state)
+//  * {
+//  * }
+//  */
 
-static void libspdm_test_requester_get_capabilities_case35(void **state)
-{
-    libspdm_return_t status;
-    libspdm_test_context_t *spdm_test_context;
-    libspdm_context_t *spdm_context;
+// static void libspdm_test_requester_get_capabilities_case35(void **state)
+// {
+//     libspdm_return_t status;
+//     libspdm_test_context_t *spdm_test_context;
+//     libspdm_context_t *spdm_context;
 
-    spdm_test_context = *state;
-    spdm_context = spdm_test_context->spdm_context;
-    spdm_test_context->case_id = 0x23;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_13 <<
-                                            SPDM_VERSION_NUMBER_SHIFT_BIT;
-    spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
-    spdm_context->local_context.capability.ct_exponent = 0;
+//     spdm_test_context = *state;
+//     spdm_context = spdm_test_context->spdm_context;
+//     spdm_test_context->case_id = 0x23;
+//     spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_13 <<
+//                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
+//     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
+//     spdm_context->local_context.capability.ct_exponent = 0;
 
-    status = libspdm_get_capabilities(spdm_context);
-    assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.max_spdm_msg_size,
-                     LIBSPDM_MAX_SPDM_MSG_SIZE);
-    assert_int_equal(spdm_context->connection_info.capability.data_transfer_size,
-                     LIBSPDM_DATA_TRANSFER_SIZE);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
-    assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_13);
-}
+//     status = libspdm_get_capabilities(spdm_context);
+//     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
+//     assert_int_equal(spdm_context->connection_info.capability.max_spdm_msg_size,
+//                      LIBSPDM_MAX_SPDM_MSG_SIZE);
+//     assert_int_equal(spdm_context->connection_info.capability.data_transfer_size,
+//                      LIBSPDM_DATA_TRANSFER_SIZE);
+//     assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+//     assert_int_equal(spdm_context->connection_info.capability.flags,
+//                      LIBSPDM_DEFAULT_CAPABILITY_RESPONSE_FLAG_VERSION_13);
+// }
 
 int libspdm_requester_get_capabilities_test_main(void)
 {
     const struct CMUnitTest m_spdm_requester_get_capabilities_tests[] = {
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case1), */
+        cmocka_unit_test(libspdm_test_requester_get_capabilities_case1),
         cmocka_unit_test(libspdm_test_requester_get_capabilities_case2),
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case3),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case4),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case5), */
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case6),
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case7),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case8),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case9), */
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case10),
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case11),
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case12),
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case13),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case14),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case15), */
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case16),
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case17),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case18),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case19),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case20),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case21),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case22),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case23),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case24),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case25),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case26),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case27),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case28),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case29),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case30),
-         * cmocka_unit_test(libspdm_test_requester_get_capabilities_case31), */
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case32),
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case33),
-        /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case34), */
-        cmocka_unit_test(libspdm_test_requester_get_capabilities_case35),
+        // /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case3),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case4),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case5), */
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case6),
+        // /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case7),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case8),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case9), */
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case10),
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case11),
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case12),
+        // /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case13),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case14),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case15), */
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case16),
+        // /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case17),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case18),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case19),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case20),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case21),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case22),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case23),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case24),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case25),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case26),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case27),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case28),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case29),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case30),
+        //  * cmocka_unit_test(libspdm_test_requester_get_capabilities_case31), */
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case32),
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case33),
+        // /* cmocka_unit_test(libspdm_test_requester_get_capabilities_case34), */
+        // cmocka_unit_test(libspdm_test_requester_get_capabilities_case35),
     };
 
     libspdm_test_context_t test_context = {

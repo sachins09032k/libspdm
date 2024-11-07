@@ -10,11 +10,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include <stdio.h>
 #include "internal/libspdm_lib_config.h"
 #include "hal/base.h"
 #include "library/spdm_secured_message_lib.h"
 #include "library/spdm_return_status.h"
+#include "../../aardvark-api-linux-x86_64-v6.00/c/aardvark.h"
 
 #define LIBSPDM_MAJOR_VERSION 0x03
 #define LIBSPDM_MINOR_VERSION 0x05
@@ -263,6 +264,23 @@ typedef enum {
  * +--------------------------+------------------------------------------+---------+
  */
 #define LIBSPDM_MAX_MESSAGE_VCA_BUFFER_SIZE (200 + 2 * LIBSPDM_MAX_VERSION_COUNT)
+
+//Initialize aardvark
+void initialize_aardvark(void); 
+
+//Function to send SPDM messages to aardvark device
+libspdm_return_t  libspdm_device_send_message_aardvark(void *spdm_context,
+                                                       size_t message_size,
+                                                       const void *message,
+                                                       uint64_t timeout);
+
+//Function to receive SPDM messages from aardvark device
+libspdm_return_t libspdm_device_receive_message_aardvark(void *spdm_context,
+                                                         size_t *message_size, 
+                                                         void **message, 
+                                                         uint64_t timeout);
+                                                      
+
 
 /**
  * Set an SPDM context data.

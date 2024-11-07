@@ -17,3 +17,6 @@ target_sources(spdm_common_lib
         libspdm_com_support.c
         libspdm_com_msg_log.c
 )
+include_directories("/home/labpc/sachins/libspdm_aardvark/aardvark-api-linux-x86_64-v6.00/c")
+link_directories("/home/labpc/sachins/libspdm_aardvark/aardvark-api-linux-x86_64-v6.00/c/")
+target_link_libraries(spdm_common_lib /home/labpc/sachins/libspdm_aardvark/aardvark-api-linux-x86_64-v6.00/c/_output/aardvark.o)
