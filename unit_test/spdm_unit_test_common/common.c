@@ -28,7 +28,6 @@ uint8_t I2C_RD_SLAVE_ADDR=0x70;
 
 void initialize_aardvark(){    
     aardvark_handle = aa_open(0);  // Open Aardvark device on port 0    
-    printf("aardvark_handle: %d\n",aardvark_handle);
     aa_configure(aardvark_handle, AA_CONFIG_SPI_I2C);  // Configure for I2C    
     aa_i2c_pullup(aardvark_handle, AA_I2C_PULLUP_BOTH);  // Enable I2C pull-up resistors    
     aa_i2c_bitrate(aardvark_handle, 100);  // Set I2C bitrate to 100 kHz
@@ -55,13 +54,12 @@ uint8_t calculate_pec(uint8_t *message,int message_size){
 
 // Add SMBus and MCTP header to SPDM message.
 uint8_t* modify_send_message(uint8_t *message_copy, size_t message_size, size_t *new_message_size){
-    // Define the number of bytes to append at the beginning
     size_t mctp_smbus_header_size = 8; // 8 bytes of MCTP and SMBUS header
     size_t pec_size = 1; // 1 byte for PEC
 
     // MCTP SMBUS Header fields
     uint8_t command_code = 0x0f;
-    uint8_t byte_count = 6 + message_size;
+    uint8_t byte_count = 0x06 + message_size;
     uint8_t source_slave_addr = ((I2C_RD_SLAVE_ADDR<<1)|0x01);
     uint8_t mctp_hdr_ver = 0x01;
     uint8_t default_eid = 0x00 ;
@@ -76,12 +74,7 @@ uint8_t* modify_send_message(uint8_t *message_copy, size_t message_size, size_t 
 
     // Allocate memory for the new message
     uint8_t *new_message = (uint8_t *)malloc(*new_message_size);
-    // if (new_message == NULL) {
-    //     printf("Memory allocation failed.\n");
-    //     return NULL;
-    // }
 
-    
     // Copy the mctp_smbus_header
     memcpy(new_message , mctp_smbus_header, mctp_smbus_header_size);
 
@@ -95,19 +88,19 @@ uint8_t* modify_send_message(uint8_t *message_copy, size_t message_size, size_t 
     return new_message;
 }   
 
-// uint8_t* modify_receive_message(uint8_t *message_copy, size_t message_size, size_t *new_message_size){
+uint8_t* modify_receive_message(uint8_t *message_copy, size_t message_size, size_t *new_message_size){
 
-//     // Calculate the new message size
-//     *new_message_size = message_size - 9 + 1; // +1 for the extra byte at the beginning
+    // Calculate the new message size
+    *new_message_size = message_size - 9 + 1; // +1 for the extra byte at the beginning
 
-//     // Append the extra byte 0x01 at the beginning
-//     new_message[0] = 0x01;
+    uint8_t* new_message = malloc((*new_message_size)*(sizeof(uint8_t)));
+    new_message[0] = 0x01;  //Header for unsecured SPDM message type.
 
-//     // Copy the content of the message without the first 8 bytes and the last byte
-//     memcpy(new_message + 1, message_copy + 8, *new_message_size - 1);
+    // Copy the content of the message without the first 8 header bytes and the last PEC byte
+    memcpy(new_message + 1, message_copy + 8, *new_message_size - 1);
 
-//     return new_message;
-// }
+    return new_message;
+}
 
 //Print the content of message byte wise.
 void print_message_aardvark(uint8_t *message, size_t message_size){
@@ -121,19 +114,11 @@ void print_message_aardvark(uint8_t *message, size_t message_size){
 libspdm_return_t libspdm_device_send_message_aardvark(void *spdm_context, size_t message_size, const void *message, uint64_t timeout){
     uint8_t message_copy[message_size];
     memcpy(message_copy, message, message_size);
-
-    printf("Request message:\n");
-    print_message_aardvark(message_copy,message_size);
-
     size_t *new_message_size;
     uint8_t *new_message = modify_send_message(message_copy+1,message_size-1,new_message_size);
-    printf("Request message:\n");
-    print_message_aardvark(new_message,*new_message_size);
 
-    int res = aa_i2c_write(aardvark_handle, I2C_WR_SLAVE_ADDR, AA_I2C_NO_FLAGS, (uint16_t)(*new_message_size), (uint8_t*)new_message);
-    printf("Send res: %d\n",res);
+    uint32_t res = (uint32_t)(aa_i2c_write(aardvark_handle, I2C_WR_SLAVE_ADDR, AA_I2C_NO_FLAGS, (uint16_t)(*new_message_size), (uint8_t*)new_message));
     
-
     if (res < 0) {
         return LIBSPDM_STATUS_SEND_FAIL;
     }
@@ -142,21 +127,13 @@ libspdm_return_t libspdm_device_send_message_aardvark(void *spdm_context, size_t
 
 //Function to receive SPDM message
 libspdm_return_t libspdm_device_receive_message_aardvark(void *spdm_context, size_t *message_size, void **message, uint64_t timeout){
-    static uint8_t buffer[1024];
-    //int res = aa_i2c_read(aardvark_handle, I2C_RD_SLAVE_ADDR, AA_I2C_NO_FLAGS, (uint16_t)*message_size, buffer);
-    *message_size = 1024;
-    int res = aa_i2c_slave_read (aardvark_handle, (uint8_t*)&I2C_RD_SLAVE_ADDR, (uint16_t)*message_size, buffer);
-    printf("Receive res: %d\n",res);
+    static uint8_t buffer[256];
+    *message_size = 256;
+    uint32_t res = (uint32_t)(aa_i2c_slave_read (aardvark_handle, (uint8_t*)&I2C_RD_SLAVE_ADDR, (uint16_t)*message_size, buffer));
     if (res < 0) {
         return LIBSPDM_STATUS_RECEIVE_FAIL;
     }
-    uint8_t message_copy[res];
-    memcpy(message_copy,buffer,res);
-    *message = buffer;  // Point to the received buffer
-    *message_size = res;  // Set the actual size of the received data
-    printf("Response Message:\n");
-    print_message_aardvark(message_copy,*message_size);
-
+    *message = (void*)(modify_receive_message(buffer,res,message_size));  //Remove MCTP and SMBus header bytes, PEC bytes and add a header byte for unsecured SPDM message type.
     return LIBSPDM_STATUS_SUCCESS;
 }    
 

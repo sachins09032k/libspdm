@@ -1028,7 +1028,7 @@ static void libspdm_test_requester_get_capabilities_case1(void **state)
     spdm_test_context = *state;
     spdm_context = spdm_test_context->spdm_context;
     spdm_test_context->case_id = 0x1;
-    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_10 <<
+    spdm_context->connection_info.version = SPDM_MESSAGE_VERSION_12 <<
                                             SPDM_VERSION_NUMBER_SHIFT_BIT;
     spdm_context->connection_info.connection_state = LIBSPDM_CONNECTION_STATE_AFTER_VERSION;
 #if LIBSPDM_RECORD_TRANSCRIPT_DATA_SUPPORT
@@ -1040,9 +1040,9 @@ static void libspdm_test_requester_get_capabilities_case1(void **state)
     spdm_context->local_context.capability.flags = LIBSPDM_DEFAULT_CAPABILITY_FLAG;
     status = libspdm_get_capabilities(spdm_context);
     assert_int_equal(status, LIBSPDM_STATUS_SUCCESS);
-    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0);
+    assert_int_equal(spdm_context->connection_info.capability.ct_exponent, 0x17);
     assert_int_equal(spdm_context->connection_info.capability.flags,
-                     LIBSPDM_DEFAULT_CAPABILITY_FLAG);
+                     0x000c0016);
 #if LIBSPDM_RECORD_TRANSCRIPT_DATA_SUPPORT
     assert_int_equal(spdm_context->transcript.message_m.buffer_size, 0);
 #endif
