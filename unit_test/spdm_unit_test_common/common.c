@@ -32,6 +32,7 @@ void initialize_aardvark(){
     aa_configure(aardvark_handle, AA_CONFIG_SPI_I2C);  // Configure for I2C    
     aa_i2c_pullup(aardvark_handle, AA_I2C_PULLUP_BOTH);  // Enable I2C pull-up resistors    
     aa_i2c_bitrate(aardvark_handle, 100);  // Set I2C bitrate to 100 kHz
+    aa_i2c_slave_enable(aardvark_handle,I2C_RD_SLAVE_ADDR,0,0);
 }
 
 uint8_t crc8(uint16_t data){
@@ -143,14 +144,18 @@ libspdm_return_t libspdm_device_send_message_aardvark(void *spdm_context, size_t
 libspdm_return_t libspdm_device_receive_message_aardvark(void *spdm_context, size_t *message_size, void **message, uint64_t timeout){
     static uint8_t buffer[1024];
     //int res = aa_i2c_read(aardvark_handle, I2C_RD_SLAVE_ADDR, AA_I2C_NO_FLAGS, (uint16_t)*message_size, buffer);
+    *message_size = 1024;
     int res = aa_i2c_slave_read (aardvark_handle, (uint8_t*)&I2C_RD_SLAVE_ADDR, (uint16_t)*message_size, buffer);
-    printf("%d\n",res);
+    printf("Receive res: %d\n",res);
     if (res < 0) {
         return LIBSPDM_STATUS_RECEIVE_FAIL;
     }
-    
+    uint8_t message_copy[res];
+    memcpy(message_copy,buffer,res);
     *message = buffer;  // Point to the received buffer
     *message_size = res;  // Set the actual size of the received data
+    printf("Response Message:\n");
+    print_message_aardvark(message_copy,*message_size);
 
     return LIBSPDM_STATUS_SUCCESS;
 }    
